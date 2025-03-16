@@ -1,103 +1,315 @@
+"use client";
+
+import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+
+interface Particle {
+  initialX: number;
+  initialY: number;
+  scale: number;
+  duration: number;
+  positions: number[];
+}
+
+// Separate component for floating particles
+function FloatingParticles() {
+  const [particles, setParticles] = useState<Particle[]>([]);
+  
+  useEffect(() => {
+    // Generate particles only on client side
+    setParticles(
+      [...Array(20)].map(() => ({
+        initialX: Math.random() * 100,
+        initialY: Math.random() * 100,
+        scale: Math.random() * 0.5 + 0.5,
+        duration: Math.random() * 20 + 20,
+        positions: [
+          Math.random() * 100,
+          Math.random() * 100,
+          Math.random() * 100,
+        ],
+      }))
+    );
+  }, []);
+
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      {particles.map((particle, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 bg-blue-500/20 rounded-full"
+          initial={{
+            x: `${particle.initialX}%`,
+            y: `${particle.initialY}%`,
+            scale: particle.scale,
+          }}
+          animate={{
+            x: particle.positions.map((p: number) => `${p}%`),
+            y: particle.positions.map((p: number) => `${p}%`),
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, ease: "easeOut" }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.3
+    }
+  }
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
+  const y = useTransform(scrollYProgress, [0, 0.5], [0, 100]);
+
+  return (
+    <div className="flex flex-col" ref={containerRef}>
+      {/* Hero Section */}
+      <motion.section 
+        initial="initial"
+        animate="animate"
+        className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{ opacity, scale, y }}
+      >
+        {/* Animated gradient background */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-400/20 dark:via-purple-400/20 dark:to-pink-400/20"
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%"],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "linear"
+          }}
+        />
+
+        {/* Content Container */}
+        <motion.div 
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="container relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center z-10"
+        >
+          {/* Name with enhanced animation */}
+          <motion.h1 
+            variants={fadeInUp}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-clip-text"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Hi, I'm{" "}
+            <motion.span 
+              className="inline-block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent"
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            >
+              Gajendra
+            </motion.span>
+          </motion.h1>
+
+          {/* Description with enhanced animation */}
+          <motion.p 
+            variants={fadeInUp}
+            className="mt-6 text-xl sm:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl font-light leading-relaxed"
           >
-            Read our docs
-          </a>
+            Welcome to my digital garden where I share my journey through technology,
+            travel, and life experiences.
+          </motion.p>
+
+          {/* Buttons with matching style */}
+          <motion.div 
+            variants={fadeInUp}
+            className="mt-12 flex flex-wrap gap-4 justify-center"
+          >
+            <Link
+              href="/about"
+              className="rounded-lg bg-gray-900 px-6 py-3 text-lg text-white transition-all hover:bg-gray-800 hover:scale-105 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+            >
+              About Me
+            </Link>
+            <Link
+              href="/blog"
+              className="rounded-lg bg-gray-900 px-6 py-3 text-lg text-white transition-all hover:bg-gray-800 hover:scale-105 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+            >
+              Read Blog
+            </Link>
+          </motion.div>
+        </motion.div>
+      </motion.section>
+
+      {/* Featured Sections with enhanced design */}
+      <motion.section 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="container mx-auto px-4 sm:px-6 lg:px-8 py-24"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Latest Blog Posts */}
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-xl border border-gray-200 dark:border-gray-800 p-8 transition-all hover:shadow-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+          >
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent"
+            >
+              Latest Posts
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed"
+            >
+              Thoughts and insights on technology, travel, and more.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Link
+                href="/blog"
+                className="mt-6 inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline group"
+              >
+                View all posts
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </motion.span>
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Featured Projects */}
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-xl border border-gray-200 dark:border-gray-800 p-8 transition-all hover:shadow-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+          >
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent"
+            >
+              Projects
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed"
+            >
+              Explore my work in Data Science, AI, and Machine Learning.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Link
+                href="/projects"
+                className="mt-6 inline-flex items-center text-purple-600 dark:text-purple-400 hover:underline group"
+              >
+                View projects
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                >
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </motion.span>
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Travel Stories */}
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -5 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-xl border border-gray-200 dark:border-gray-800 p-8 transition-all hover:shadow-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm"
+          >
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-red-600 dark:from-pink-400 dark:to-red-400 bg-clip-text text-transparent"
+            >
+              Travel Stories
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed"
+            >
+              Join me on my adventures around the world.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              <Link
+                href="/travel"
+                className="mt-6 inline-flex items-center text-pink-600 dark:text-pink-400 hover:underline group"
+              >
+                Explore travels
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                >
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </motion.span>
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </motion.section>
+
+      {/* Enhanced floating particles */}
+      <FloatingParticles />
     </div>
   );
 }
