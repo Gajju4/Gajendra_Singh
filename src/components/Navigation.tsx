@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
-import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -90,9 +89,7 @@ export default function Navigation() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-            
+          <div className="flex items-center">
             {/* Mobile menu button */}
             <motion.button
               onClick={() => setIsOpen(!isOpen)}
